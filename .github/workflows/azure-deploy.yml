@@ -23,22 +23,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Prepare deployment package
+      - name: Archive app for deployment (clean)
         run: |
           mkdir build
-          cp -r * .[^.]* build 2>/dev/null || true
+          shopt -s dotglob nullglob
+          cp -r * build/
           cd build
-          zip -r ../deploy.zip * .[^.]* -x ".git/*" ".github/*" "venv/*" "__pycache__/*"
+          zip -r ../deploy.zip ./*
+          cd ..
 
-      - name: Clean wwwroot via Kudu API
-        run: |
-          curl -X POST "https://my-python-app123.scm.azurewebsites.net/api/command" \
-            -u "$DEPLOY_USERNAME:$DEPLOY_PASSWORD" \
-            -H "Content-Type: application/json" \
-            -d '{"command": "rm -rf /home/site/wwwroot/*"}'
-        env:
-          DEPLOY_USERNAME: ${{ secrets.KUDU_USER }}
-          DEPLOY_PASSWORD: ${{ secrets.KUDU_PASS }}
+      # Nettoyage optionnel de wwwroot (décommenter si besoin)
+      # - name: Clean wwwroot before deployment
+      #   env:
+      #     DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+      #     DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+      #   run: |
+      #     curl -X POST "https://my-python-app123.scm.azurewebsites.net/api/command" \
+      #       -u "$DEPLOY_USERNAME:$DEPLOY_PASSWORD" \
+      #       -H "Content-Type: application/json" \
+      #       -d '{"command": "rm -rf /home/site/wwwroot/*"}'
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
