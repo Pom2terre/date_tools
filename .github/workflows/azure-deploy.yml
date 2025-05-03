@@ -23,10 +23,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Create startup file
+        run: echo "gunicorn --bind=0.0.0.0 --timeout 600 wsgi:app" > startup.txt
+
       - name: Create deployment package
         run: |
           echo "📦 Archiving root of the repository"
-          zip -r deploy.zip . -x ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.pyc" "*.DS_Store" "deploy.zip"
+          cd $GITHUB_WORKSPACE
+          zip -r deploy.zip * .[^.]* -x "deploy.zip" ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.pyc" "*.pyo" "*.DS_Store"
+
 
 
       - name: Deploy to Azure Web App
