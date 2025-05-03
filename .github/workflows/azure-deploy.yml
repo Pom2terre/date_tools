@@ -45,36 +45,63 @@ jobs:
             --src-path deploy.zip \
             --type zip
       
-      - name: ✅ Test application endpoints
+      - name: ✅ Test application endpoints (visuel + résumé + artefact)
         run: |
           echo "⏳ Attente démarrage app..."
           sleep 15
 
           BASE_URL="https://my-python-app123.azurewebsites.net"
 
-          echo "🔎 Test /hello"
-          curl -fsSL "$BASE_URL/hello" | grep "Flask is running"
+          PASSED=true
+          SUMMARY="### 🔎 Résumé des tests de disponibilité\n"
 
-          echo "🔎 Test / (HTTP/* 200)"
-          curl -sLI "$BASE_URL/" | grep -E "HTTP/[0-9.]+ 200"
+          test_endpoint () {
+            local path=$1
+            local expect=$2
+            local label=$3
 
-          echo "🔎 Test /calculate-duration (HTML page GET)"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/calculate-duration")
-          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
-            echo "✅ /calculate-duration responded with $STATUS"
-          else
-            echo "❌ /calculate-duration failed with HTTP $STATUS"
+            echo "🔹 Test $label"
+            if [ "$expect" == "content" ]; then
+              if curl -fsSL "$BASE_URL$path" | grep -q "$label"; then
+                echo "✅ $label OK"
+                SUMMARY+="✅ \`$path\` contient '$label'\n"
+              else
+                echo "❌ $label Échec (contenu manquant)"
+                SUMMARY+="❌ \`$path\` ne contient pas '$label'\n"
+                PASSED=false
+              fi
+            else
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$path")
+              if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+                echo "✅ $label ($STATUS)"
+                SUMMARY+="✅ \`$path\` a répondu $STATUS\n"
+              else
+                echo "❌ $label ($STATUS)"
+                SUMMARY+="❌ \`$path\` a échoué avec $STATUS\n"
+                PASSED=false
+              fi
+            fi
+          }
+
+          test_endpoint "/hello" "content" "Flask is running"
+          test_endpoint "/" "status" "Page d’accueil"
+          test_endpoint "/calculate-duration" "status" "Calcul durée"
+          test_endpoint "/day-of-week" "status" "Jour de la semaine"
+
+          echo -e "$SUMMARY" > test-summary.md
+          cat test-summary.md
+
+          if [ "$PASSED" = false ]; then
+            echo "❌ Des tests ont échoué."
             exit 1
-          fi
-
-          echo "🔎 Test /day-of-week"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/day-of-week")
-          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
-            echo "✅ /day-of-week responded with $STATUS"
           else
-            echo "❌ /day-of-week failed with HTTP $STATUS"
-            exit 1
+            echo "✅ Tous les tests sont passés avec succès."
           fi
+        
+      - name: 📤 Publier le résumé des tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-summary
+          path: test-summary.md
 
-          echo "✅ Tous les tests de disponibilité sont passés !"
 
