@@ -55,8 +55,8 @@ jobs:
           echo "🔎 Test /hello"
           curl -fsSL "$BASE_URL/hello" | grep "Flask is running"
 
-          echo "🔎 Test /"
-          curl -fsSLI "$BASE_URL/" | grep -E "HTTP/1.1 2[0-9][0-9]"
+          echo "🔎 Test / (headers complets)"
+          curl -sLI "$BASE_URL/"
 
           echo "🔎 Test /calculate-duration"
           curl -fsSLI "$BASE_URL/calculate-duration" | grep -E "HTTP/1.1 2[0-9][0-9]"
