@@ -24,5 +24,19 @@ def menu():
 def hello():
     return "Flask is running on Azure!"
 
+@app.route("/version-debug")
+def version_debug():
+    import os
+    from version import APP_VERSION
+
+    return f"""
+    <pre>
+    🌐 Version Flask : {APP_VERSION}
+    🔧 ENV (app.config) : {app.config.get("ENVIRONMENT", "N/A")}
+    🐞 DEBUG : {app.debug}
+    🔄 APP_VERSION via os.environ : {os.getenv("APP_VERSION", "N/A")}
+    </pre>
+    """
+
 if __name__ == "__main__":
     app.run(debug=True)
