@@ -1,0 +1,9 @@
+{# Use result values if available, otherwise fall back to config #}
+{% set version = result.app_version if result and result.app_version else config.APP_VERSION %}
+{% set env = result.environment if result and result.environment else config.ENVIRONMENT %}
+{% set debug = result.debug if result and result.debug is not none else config.DEBUG %}
+
+<footer class="text-center text-xs text-gray-500 mt-10">
+    <p>Version : {{ version }}</p>
+    <p>Environnement : {{ env }} – Debug : {{ debug }}</p>
+</footer>

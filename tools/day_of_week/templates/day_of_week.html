@@ -1,0 +1,70 @@
+{% extends "_layout.html" %}
+
+{% block title %}Jour de la semaine{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl">
+    <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">🗓️ Calculateur de jour de la semaine</h1>
+
+    <form method="POST" class="space-y-4">
+        <div class="grid grid-cols-3 gap-4">
+            <div>
+                <label for="day" class="block font-medium text-gray-700">Jour :</label>
+                <select name="day" id="day" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option disabled selected>--</option>
+                    {% for d in range(1, 32) %}
+                        <option value="{{ d }}">{{ '%02d' % d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="month" class="block font-medium text-gray-700">Mois :</label>
+                <select name="month" id="month" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option disabled selected>--</option>
+                    {% for m in range(1, 13) %}
+                        <option value="{{ m }}">{{ '%02d' % m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="year" class="block font-medium text-gray-700">Année (00-99) :</label>
+                <select name="year" id="year" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option disabled selected>--</option>
+                    {% for y in range(0, 100) %}
+                        <option value="{{ y }}">{{ '%02d' % y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded shadow transition">
+                Calculer
+            </button>
+        </div>
+    </form>
+
+    {% if result %}
+        {% if result.error %}
+            <p class="text-red-600 text-center font-semibold mt-4">⚠️ Erreur : {{ result.error }}</p>
+        {% else %}
+            <div class="mt-6 bg-green-50 border border-green-200 p-4 rounded-lg text-green-800">
+                ✅ Le {{ result.original_date }} est un <strong>{{ result.weekday }}</strong>.
+            </div>
+
+            <ul class="list-disc list-inside mt-4 text-gray-700 space-y-2">
+                <li>Jour numéro <strong>{{ result.day_of_year }}</strong> de l'année, <strong>{{ result.days_left }}</strong> jours restants.</li>
+                <li>{{ result.weekday }} numéro <strong>{{ result.weekday_index_year }}</strong> sur <strong>{{ result.weekday_total_year }}</strong> en {{ result.original_date[-4:] }}.</li>
+                <li>{{ result.weekday }} numéro <strong>{{ result.weekday_index_month }}</strong> sur <strong>{{ result.weekday_total_month }}</strong> en {{ result.original_date[3:10] }}.</li>
+                <li>L'année a <strong>{{ result.year_days }}</strong> jours.</li>
+                <li>Le mois a <strong>{{ result.month_days }}</strong> jours.</li>
+            </ul>
+
+            <div class="mt-6 text-center">
+                <a href="{{ url_for('day_of_week.day_of_week') }}" class="inline-block bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded">
+                    ← Recommencer
+                </a>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

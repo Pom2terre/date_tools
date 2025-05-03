@@ -1,0 +1,21 @@
+<nav class="bg-indigo-700 text-white p-4 shadow w-full">
+  <div class="max-w-5xl mx-auto flex justify-between items-center">
+    <div class="font-bold text-lg">
+      🧮 Outils de date
+    </div>
+    <div class="space-x-4 text-sm font-medium">
+      <a href="{{ url_for('menu') }}"
+         class="{% if request.endpoint == 'menu' %}underline{% endif %} hover:underline">
+         🏠 Menu
+      </a>
+      <a href="{{ url_for('day_of_week.day_of_week') }}"
+         class="{% if request.endpoint == 'day_of_week.day_of_week' %}underline{% endif %} hover:underline">
+         🗓️ Jour
+      </a>
+      <a href="{{ url_for('date_calc.calculate_duration') }}"
+         class="{% if request.endpoint == 'date_calc.calculate_duration' %}underline{% endif %} hover:underline">
+         📆 Durée
+      </a>
+    </div>
+  </div>
+</nav>
