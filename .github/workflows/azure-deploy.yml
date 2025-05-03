@@ -25,12 +25,7 @@ jobs:
 
       - name: Archive app for deployment (clean)
         run: |
-          mkdir build
-          shopt -s extglob dotglob
-          cp -r !(build) build/
-          cd build
-          zip -r ../deploy.zip .
-          cd ..
+          zip -r deploy.zip . -x ".git/*" ".github/*" "venv/*" "**/__pycache__/*"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
