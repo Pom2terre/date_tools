@@ -52,7 +52,17 @@ Chaque `git push` sur `main` :
 
 ## 📂 Structure du projet
 
-<pre> ``` ├── main.py ├── wsgi.py ├── templates/ │ ├── _layout.html │ ├── _footer.html │ ├── calculate_duration.html │ └── day_of_week.html ├── static/ ├── requirements.txt └── azure-deploy.yml ``` </pre>
+<pre> ``` ├── main.py # Entrée Flask
+          ├── wsgi.py # Serveur WSGI
+          ├── templates/
+          │ ├── _layout.html # Layout global
+          │ ├── _footer.html # Footer dynamique
+          │ ├── calculate_duration.html
+          │ └── day_of_week.html
+          ├── static/ # Fichiers JS/CSS (si présents)
+          ├── requirements.txt
+          └── azure-deploy.yml # GitHub Actions
+``` </pre>
 
 ---
 
