@@ -46,14 +46,14 @@ jobs:
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "Version calculée : $NEW_VERSION"
 
-          - name: ✍️ Mettre à jour version.py
-          run: |
-            echo "APP_VERSION = \"${{ steps.version.outputs.NEW_VERSION }}\"" > version.py
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
-            git add version.py
-            git commit -m "🔄 Mise à jour version.py → ${{ steps.version.outputs.NEW_VERSION }}"
-            git push origin main            
+      - name: ✍️ Mettre à jour version.py
+        run: |
+          echo "APP_VERSION = \"${{ steps.version.outputs.NEW_VERSION }}\"" > version.py
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add version.py
+          git commit -m "🔄 Mise à jour version.py → ${{ steps.version.outputs.NEW_VERSION }}"
+          git push origin main                 
 
       - name: 🏷️ Create new tag (if none in commit)
         run: |
