@@ -55,13 +55,26 @@ jobs:
           echo "🔎 Test /hello"
           curl -fsSL "$BASE_URL/hello" | grep "Flask is running"
 
-          echo "🔎 Test / (headers complets)"
-          curl -sLI "$BASE_URL/"
+          echo "🔎 Test / (HTTP/* 200)"
+          curl -sLI "$BASE_URL/" | grep -E "HTTP/[0-9.]+ 200"
 
-          echo "🔎 Test /calculate-duration"
-          curl -fsSLI "$BASE_URL/calculate-duration" | grep -E "HTTP/1.1 2[0-9][0-9]"
+          echo "🔎 Test /calculate-duration (HTML page GET)"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/calculate-duration")
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ /calculate-duration responded with $STATUS"
+          else
+            echo "❌ /calculate-duration failed with HTTP $STATUS"
+            exit 1
+          fi
 
           echo "🔎 Test /day-of-week"
-          curl -fsSLI "$BASE_URL/day-of-week" | grep -E "HTTP/1.1 2[0-9][0-9]"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/day-of-week")
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ /day-of-week responded with $STATUS"
+          else
+            echo "❌ /day-of-week failed with HTTP $STATUS"
+            exit 1
+          fi
 
           echo "✅ Tous les tests de disponibilité sont passés !"
+
