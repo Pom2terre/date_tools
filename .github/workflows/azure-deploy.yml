@@ -44,3 +44,25 @@ jobs:
             --name my-python-app123 \
             --src-path deploy.zip \
             --type zip
+      
+      - name: ✅ Test application endpoints
+        run: |
+          echo "⏳ Attente démarrage app..."
+          sleep 15
+
+          BASE_URL="https://my-python-app123.azurewebsites.net"
+
+          echo "🔎 Test /hello"
+          curl -fsSL "$BASE_URL/hello" | grep "Flask is running"
+
+          echo "🔎 Test /"
+          curl -fsSLI "$BASE_URL/" | grep "HTTP/1.1 200"
+
+          echo "🔎 Test /calculate-duration"
+          curl -fsSLI "$BASE_URL/calculate-duration" | grep "HTTP/1.1 200"
+
+          echo "🔎 Test /day-of-week"
+          curl -fsSLI "$BASE_URL/day-of-week" | grep "HTTP/1.1 200"
+
+          echo "✅ Tous les tests de disponibilité sont passés !"
+          echo "🚀 Déploiement terminé !"
