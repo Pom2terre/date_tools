@@ -23,9 +23,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Archive app for deployment
+        - name: Archive app for deployment
         run: |
-          zip -r deploy.zip * .[^.]* -x ".git/*" ".github/*" "venv/*" "__pycache__/*"
+          mkdir build
+          cp -r * .[^.]* build 2>/dev/null || true
+          cd build
+          zip -r ../deploy.zip * .[^.]* -x ".git/*" ".github/*" "venv/*" "__pycache__/*"
 
       # (Optionnel, nécessite secrets) - commentaire conservé pour clarté
       # - name: Clean wwwroot before deployment
