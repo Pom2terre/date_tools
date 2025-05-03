@@ -80,3 +80,4 @@ Développé par [@pom2terre](https://github.com/pom2terre)
 ## 📝 Licence
 
 Ce projet est distribué sous la licence [MIT](LICENSE).
+
