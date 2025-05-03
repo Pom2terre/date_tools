@@ -23,10 +23,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Archive app for deployment
+      - name: Debug: contenu du dossier courant
         run: |
-          zip -r deploy.zip . -x ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.zip"
-        
+          echo "📁 Fichiers à la racine avant archivage :"
+          ls -la
+          echo "🔍 Vérification du répertoire package :"
+          ls -la package || echo "Le dossier package n'existe pas encore."
+
+      - name: Archive app for deployment (clean)
+        run: |
+          mkdir package
+          shopt -s extglob dotglob
+          cp -r !(package) package/
+          cd package
+          echo "📁 Contenu de package avant compression :"
+          ls -la
+          zip -r ../deploy.zip . -x "**/__pycache__/*"
+          cd ..
+          echo "✅ Archive créée :"
+          ls -lh deploy.zip
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
