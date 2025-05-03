@@ -23,24 +23,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Archive app for deployment (clean)
+      - name: Archive app for deployment
         run: |
-          mkdir build
-          shopt -s dotglob
-          shopt -s extglob
-          cp -r !(build) build/
-          cd build
-          zip -r ../deploy.zip .
-          cd ..
-
-      # (optionnel) Nettoyage automatique de wwwroot avant le déploiement
-      # Nécessite DEPLOY_USERNAME et DEPLOY_PASSWORD dans les secrets GitHub
-      # - name: Clean wwwroot before deployment
-      #   run: |
-      #     curl -X POST "https://my-python-app123.scm.azurewebsites.net/api/command" \
-      #       -u "$DEPLOY_USERNAME:$DEPLOY_PASSWORD" \
-      #       -H "Content-Type: application/json" \
-      #       -d '{"command": "rm -rf /home/site/wwwroot/*"}'
+          zip -r deploy.zip . -x ".git/*" ".github/*" "venv/*" "__pycache__/*"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
