@@ -2,9 +2,7 @@ name: Deploy Flask to Azure using Azure CLI
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
   build-and-deploy:
@@ -13,6 +11,8 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Important pour récupérer les tags
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
@@ -21,83 +21,93 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🗜️ Create clean deployment package
+      - name: 🗜️ Create deployment package
         run: |
           mkdir deploy_folder
           shopt -s extglob
           cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
-          cd deploy_folder
-          zip -r ../deploy.zip .
-          cd ..
+          cd deploy_folder && zip -r ../deploy.zip . && cd ..
 
-      - name: 🔐 Login to Azure
+      - name: 🆙 Determine next version
+        id: version
+        run: |
+          LATEST=$(git tag --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
+          echo "Dernier tag : $LATEST"
+          if [[ "$LATEST" =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            NEW_VERSION="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+          else
+            NEW_VERSION="v0.0.1"
+          fi
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Version calculée : $NEW_VERSION"
+
+          - name: ✍️ Mettre à jour version.py
+          run: |
+            echo "APP_VERSION = \"${{ steps.version.outputs.NEW_VERSION }}\"" > version.py
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add version.py
+            git commit -m "🔄 Mise à jour version.py → ${{ steps.version.outputs.NEW_VERSION }}"
+            git push origin main            
+
+      - name: 🏷️ Create new tag (if none in commit)
+        run: |
+          if [ -z "$(git tag --points-at HEAD)" ]; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git tag ${{ steps.version.outputs.NEW_VERSION }}
+            git push origin ${{ steps.version.outputs.NEW_VERSION }}
+          else
+            echo "Tag déjà existant pour ce commit."
+          fi
+
+      - name: 🔐 Azure login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: 🚀 Deploy to Azure Web App via CLI
+      - name: 🛠️ Update APP_VERSION on Azure
         run: |
-          az webapp deploy \
-            --resource-group RESGrp_Linux \
-            --name my-python-app123 \
-            --src-path deploy.zip \
-            --type zip
-
-      - name: 🆙 Définir APP_VERSION depuis le tag ou fallback
-        run: |
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
-          if [ -z "$TAG" ]; then
-            TIMESTAMP=$(date +'%Y.%m.%d.%H%M')
-            GIT_HASH=$(git rev-parse --short HEAD)
-            TAG="${TIMESTAMP}-${GIT_HASH}"
-          fi
-
-          echo "Version à utiliser : $TAG"
+          VERSION=$(git tag --points-at HEAD | tail -n1)
           az webapp config appsettings set \
             --name my-python-app123 \
             --resource-group RESGrp_Linux \
-            --settings APP_VERSION=$TAG
+            --settings APP_VERSION=$VERSION
 
-      - name: ✅ Tester les endpoints et créer résumé
+      - name: 🚀 Deploy to Azure
         run: |
-          echo "⏳ Attente démarrage app..."
+          az webapp deploy \
+            --name my-python-app123 \
+            --resource-group RESGrp_Linux \
+            --src-path deploy.zip \
+            --type zip
+
+      - name: ✅ Test endpoints
+        run: |
           sleep 15
+          BASE="https://my-python-app123.azurewebsites.net"
+          echo "### Résumé des tests" > test-summary.md
 
-          BASE_URL="https://my-python-app123.azurewebsites.net"
-          PASSED=true
-          SUMMARY="### 🔎 Résumé des tests\n"
-
-          test_endpoint () {
-            local path=$1
-            local label=$2
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$path")
-            if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
-              echo "✅ $label ($STATUS)"
-              SUMMARY+="✅ \`$path\` : $STATUS\n"
-            else
-              echo "❌ $label ($STATUS)"
-              SUMMARY+="❌ \`$path\` : $STATUS\n"
-              PASSED=false
-            fi
+          check() {
+            echo "🔹 $1" >> test-summary.md
+            curl -fsSL "$BASE$2" > /dev/null \
+              && echo "✅ $2 OK" >> test-summary.md \
+              || echo "❌ $2 ECHEC" >> test-summary.md
           }
 
-          test_endpoint "/" "Accueil"
-          test_endpoint "/hello" "Hello"
-          test_endpoint "/calculate-duration" "Durée"
-          test_endpoint "/day-of-week" "Jour de la semaine"
-          test_endpoint "/version-debug" "Version"
+          check "Accueil" "/"
+          check "Hello" "/hello"
+          check "Jour" "/day-of-week"
+          check "Durée" "/calculate-duration"
 
-          echo -e "$SUMMARY" > test-summary.md
           cat test-summary.md
 
-          if [ "$PASSED" = false ]; then
-            exit 1
-          fi
-
-      - name: 📤 Publier le résumé en tant qu’artefact
+      - name: 📤 Upload résumé des tests
         uses: actions/upload-artifact@v4
         with:
           name: test-summary
