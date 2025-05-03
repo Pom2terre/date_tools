@@ -5,8 +5,10 @@ from version import APP_VERSION
 
 app = Flask(__name__)
 app.config["APP_VERSION"] = APP_VERSION
-app.config["ENVIRONMENT"] = "development"
-app.debug = True
+# Set config based on environment
+env = os.getenv("FLASK_ENV", "production")
+app.config["ENVIRONMENT"] = env
+app.debug = env == "development"
 
 app.register_blueprint(day_of_week_bp, url_prefix="/day-of-week")
 app.register_blueprint(date_calc_bp, url_prefix="/calculate-duration")
