@@ -37,11 +37,16 @@
             <div class="mt-6 bg-green-50 border border-green-200 p-4 rounded-lg text-green-800">
                 ✅ Durée entre le <strong>{{ result.start_date }}</strong> et le <strong>{{ result.end_date }}</strong> :
                 <ul class="mt-2 list-disc list-inside space-y-1">
-                    <li><strong>{{ result.days }}</strong> jour(s)</li>
-                    <li><strong>{{ result.weeks }}</strong> semaine(s)</li>
-                    <li><strong>{{ result.months }}</strong> mois estimés</li>
-                    <li><strong>{{ result.years }}</strong> année(s) estimées</li>
+                    <li><strong>{{ result.time_duration_days }}</strong> jour(s)</li>
+                    <li><strong>{{ result.time_duration_weeks }}</strong> semaine(s)</li>
+                    <li><strong>{{ result.time_duration_months }}</strong> mois et <strong>{{ result.time_duration_remaining_days_in_month }}</strong> jour(s)</li>
+                    <li><strong>{{ result.time_duration_years }}</strong> année(s)</li>
+                    <li><strong>{{ result.time_duration_hours }}</strong> heure(s)</li>
+                    <li><strong>{{ result.time_duration_minutes }}</strong> minute(s)</li>
+                    <li><strong>{{ result.time_duration_seconds }}</strong> seconde(s)</li>
+                    <li>Pour l’année <strong>{{ result.current_year }}</strong>, cela représente environ <strong>{{ result.time_duration_percentage }}%</strong></li>
                 </ul>
+                
             </div>
         {% endif %}
     {% endif %}
