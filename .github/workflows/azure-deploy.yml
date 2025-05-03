@@ -13,6 +13,11 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
+      - name: 🔧 Installer GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install -y gh
+
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
@@ -32,6 +37,24 @@ jobs:
           zip -r ../deploy.zip .
           cd ..
 
+      - name: 🏷️ Générer un tag Git auto + release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE_TAG=$(date +'%Y.%m.%d.%H%M')
+          TAG="v$DATE_TAG"
+
+          echo "Création du tag $TAG"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "$TAG" -m "Déploiement automatique du $DATE_TAG"
+          git push origin "$TAG"
+
+          echo "Création de la release GitHub"
+          gh auth setup-git
+          gh release create "$TAG" --title "Déploiement $TAG" --notes "Déploiement automatique réalisé via GitHub Actions le $DATE_TAG" || echo "Release déjà existante"
+
       - name: 🔐 Login to Azure
         uses: azure/login@v1
         with:
@@ -44,7 +67,22 @@ jobs:
             --name my-python-app123 \
             --src-path deploy.zip \
             --type zip
-      
+
+      - name: 🆙 Définir APP_VERSION depuis le tag ou fallback
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -z "$TAG" ]; then
+            TIMESTAMP=$(date +'%Y.%m.%d.%H%M')
+            GIT_HASH=$(git rev-parse --short HEAD)
+            TAG="${TIMESTAMP}-${GIT_HASH}"
+          fi
+
+          echo "Version à utiliser : $TAG"
+          az webapp config appsettings set \
+            --name my-python-app123 \
+            --resource-group RESGrp_Linux \
+            --settings APP_VERSION=$TAG
+
       - name: ✅ Test application endpoints (visuel + résumé + artefact)
         run: |
           echo "⏳ Attente démarrage app..."
@@ -97,11 +135,9 @@ jobs:
           else
             echo "✅ Tous les tests sont passés avec succès."
           fi
-        
+
       - name: 📤 Publier le résumé des tests
         uses: actions/upload-artifact@v4
         with:
           name: test-summary
           path: test-summary.md
-
-
