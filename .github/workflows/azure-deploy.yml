@@ -35,6 +35,7 @@ jobs:
       #       -H "Content-Type: application/json" \
       #       -d '{"command": "rm -rf /home/site/wwwroot/*"}'
 
+      
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
