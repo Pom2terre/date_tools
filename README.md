@@ -1,9 +1,9 @@
 # 🗓️ Date Calc Flask
 
-![Déploiement Azure](https://github.com/pom2terre/date_tools/actions/workflows/azure-deploy.yml/badge.svg)
+[![Déploiement Azure](https://github.com/pom2terre/date_tools/actions/workflows/azure-deploy.yml/badge.svg)](https://github.com/pom2terre/date_tools/actions/workflows/azure-deploy.yml)
 ![Version](https://img.shields.io/github/v/tag/pom2terre/date_tools?label=version&sort=semver)
-![Azure](https://img.shields.io/badge/Azure-Deployed-blue?logo=microsoft-azure)
 ![Licence](https://img.shields.io/github/license/pom2terre/date_tools)
+![Azure](https://img.shields.io/badge/Azure-Deployed-blue?logo=microsoft-azure)
 
 Calculateur de dates en Flask : durée entre deux dates, jour de la semaine, et plus.  
 Déployé automatiquement sur Azure Web Apps via GitHub Actions.
