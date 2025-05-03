@@ -18,6 +18,9 @@ def menu():
         environment=app.config["ENVIRONMENT"],
         debug=app.debug
     )
+def hello():
+    return "Flask is running on Azure!"
+
 
 if __name__ == "__main__":
     app.debug = True
