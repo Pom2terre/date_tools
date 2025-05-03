@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request
 from tools.day_of_week.routes import day_of_week_bp
 from tools.date_calc.routes import date_calc_bp
+from version import APP_VERSION
 
 app = Flask(__name__)
-app.config["APP_VERSION"] = "1.0.0"
+app.config["APP_VERSION"] = APP_VERSION
 app.config["ENVIRONMENT"] = "development"
 app.debug = True
 
@@ -18,13 +19,10 @@ def menu():
         environment=app.config["ENVIRONMENT"],
         debug=app.debug
     )
+
+@app.route("/hello")
 def hello():
     return "Flask is running on Azure!"
 
-
 if __name__ == "__main__":
-    app.debug = True
-    app.config["ENVIRONMENT"] = "development"
-    app.config["APP_VERSION"] = "1.0.0"
     app.run(debug=True)
-

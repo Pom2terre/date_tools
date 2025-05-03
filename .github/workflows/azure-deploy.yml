@@ -26,7 +26,8 @@ jobs:
       - name: Create deployment package
         run: |
           echo "📦 Archiving root of the repository"
-          zip -r deploy.zip . -x ".git/*" ".github/*" "venv/*" "**/__pycache__/*"
+          zip -r deploy.zip . -x ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.pyc" "*.DS_Store" "deploy.zip"
+
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2

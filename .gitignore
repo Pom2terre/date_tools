@@ -1,3 +1,42 @@
-venv/
+# === Python cache files ===
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# === Environment files ===
+.env
+*.env
+
+# === Virtual environment ===
+venv/
+ENV/
+env/
+.venv/
+
+# === Editor / IDE files ===
+.vscode/
+.idea/
+*.swp
+*~
+
+# === MacOS / Windows ===
+.DS_Store
+Thumbs.db
+
+# === Flask static/generated folders ===
+instance/
+*.log
+
+# === GitHub workflows cache ===
+.github/workflows/*.zip
+.github/workflows/build/
+
+# === Build artifacts ===
+build/
+*.tar.gz
+*.egg-info/
+dist/
+deploy.zip
+
+# === Misc ===
+test.txt
