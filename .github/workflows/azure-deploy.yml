@@ -10,32 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create startup file
-        run: echo "gunicorn --bind=0.0.0.0 --timeout 600 wsgi:app" > startup.txt
-
-      - name: Create deployment package
+      - name: 🗜️ Create deployment package
         run: |
-          echo "📦 Archiving root of the repository"
-          zip -r deploy.zip . -x "deploy.zip" ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.pyc" "*.pyo" "*.DS_Store"
+          echo "📦 Creating clean deploy.zip"
+          zip -r deploy.zip * .[^.]* -x "deploy.zip" ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.pyc" "*.pyo" "*.DS_Store"
 
-
-
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: my-python-app123
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: deploy.zip
+      - name: 🚀 Deploy to Azure via zipdeploy
+        env:
+          ZIPDEPLOY_URL: https://${{ secrets.AZURE_APP_NAME }}.scm.azurewebsites.net/api/zipdeploy
+        run: |
+          echo "🚚 Uploading deploy.zip to $ZIPDEPLOY_URL"
+          curl -X POST "$ZIPDEPLOY_URL" \
+            -u ${{ secrets.AZURE_ZIPDEPLOY_USER }}:${{ secrets.AZURE_ZIPDEPLOY_PWD }} \
+            --data-binary @"deploy.zip"
+          echo "✅ Deployment complete!"
