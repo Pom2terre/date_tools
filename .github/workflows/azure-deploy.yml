@@ -23,25 +23,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Debug listing root before archive
+      - name: Create deployment package
         run: |
-          echo "Fichiers à la racine avant archivage :"
-          ls -la
-          echo "Vérification du dossier 'package' :"
-          ls -la package || echo "Le dossier 'package' n'existe pas encore."
-
-      - name: Archive app for deployment (clean)
-        run: |
-          mkdir package
-          shopt -s extglob dotglob
-          cp -r !(package) package/
-          cd package
-          echo "Contenu du dossier 'package' :"
-          ls -la
-          zip -r ../deploy.zip . -x "**/__pycache__/*"
-          cd ..
-          echo "Archive finale :"
-          ls -lh deploy.zip
+          echo "📦 Archiving root of the repository"
+          zip -r deploy.zip . -x ".git/*" ".github/*" "venv/*" "**/__pycache__/*"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
@@ -49,5 +34,3 @@ jobs:
           app-name: my-python-app123
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: deploy.zip
-          runtime-stack: "PYTHON|3.11"
-          deployment-method: "run-from-package"
