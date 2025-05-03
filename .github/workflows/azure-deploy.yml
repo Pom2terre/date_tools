@@ -26,17 +26,16 @@ jobs:
       - name: Archive app for deployment (clean)
         run: |
           mkdir build
-          shopt -s dotglob nullglob
-          cp -r * build/
+          shopt -s dotglob
+          shopt -s extglob
+          cp -r !(build) build/
           cd build
-          zip -r ../deploy.zip ./*
+          zip -r ../deploy.zip .
           cd ..
 
-      # Nettoyage optionnel de wwwroot (décommenter si besoin)
+      # (optionnel) Nettoyage automatique de wwwroot avant le déploiement
+      # Nécessite DEPLOY_USERNAME et DEPLOY_PASSWORD dans les secrets GitHub
       # - name: Clean wwwroot before deployment
-      #   env:
-      #     DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
-      #     DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
       #   run: |
       #     curl -X POST "https://my-python-app123.scm.azurewebsites.net/api/command" \
       #       -u "$DEPLOY_USERNAME:$DEPLOY_PASSWORD" \
