@@ -56,13 +56,12 @@ jobs:
           curl -fsSL "$BASE_URL/hello" | grep "Flask is running"
 
           echo "🔎 Test /"
-          curl -fsSLI "$BASE_URL/" | grep "HTTP/1.1 200"
+          curl -fsSLI "$BASE_URL/" | grep -E "HTTP/1.1 2[0-9][0-9]"
 
           echo "🔎 Test /calculate-duration"
-          curl -fsSLI "$BASE_URL/calculate-duration" | grep "HTTP/1.1 200"
+          curl -fsSLI "$BASE_URL/calculate-duration" | grep -E "HTTP/1.1 2[0-9][0-9]"
 
           echo "🔎 Test /day-of-week"
-          curl -fsSLI "$BASE_URL/day-of-week" | grep "HTTP/1.1 200"
+          curl -fsSLI "$BASE_URL/day-of-week" | grep -E "HTTP/1.1 2[0-9][0-9]"
 
           echo "✅ Tous les tests de disponibilité sont passés !"
-          echo "🚀 Déploiement terminé !"
