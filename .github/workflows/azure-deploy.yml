@@ -23,9 +23,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Archive app for deployment (clean)
+      - name: Create deploy.zip with clean structure
         run: |
-          zip -r deploy.zip . -x ".git/*" ".github/*" "venv/*" "**/__pycache__/*"
+          mkdir deploy_temp
+          shopt -s extglob dotglob
+          cp -r !(deploy_temp) deploy_temp/
+          cd deploy_temp
+          zip -r ../deploy.zip .
+          cd ..
+          rm -rf deploy_temp
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
