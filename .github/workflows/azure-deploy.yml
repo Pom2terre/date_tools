@@ -29,8 +29,7 @@ jobs:
       - name: Create deployment package
         run: |
           echo "📦 Archiving root of the repository"
-          cd $GITHUB_WORKSPACE
-          zip -r deploy.zip * .[^.]* -x "deploy.zip" ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.pyc" "*.pyo" "*.DS_Store"
+          zip -r deploy.zip . -x "deploy.zip" ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.pyc" "*.pyo" "*.DS_Store"
 
 
 
