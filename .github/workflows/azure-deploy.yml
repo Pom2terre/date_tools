@@ -1,4 +1,4 @@
-name: Deploy Flask to Azure
+name: Deploy Flask to Azure using Azure CLI
 
 on:
   push:
@@ -23,17 +23,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🗜️ Create deployment package
+      - name: 🗜️ Create clean deployment package
         run: |
-          echo "📦 Creating clean deploy.zip"
-          zip -r deploy.zip * .[^.]* -x "deploy.zip" ".git/*" ".github/*" "venv/*" "**/__pycache__/*" "*.pyc" "*.pyo" "*.DS_Store"
+          mkdir deploy_folder
+          shopt -s extglob
+          cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
+          cd deploy_folder
+          zip -r ../deploy.zip .
+          cd ..
 
-      - name: 🚀 Deploy to Azure via zipdeploy
-        env:
-          ZIPDEPLOY_URL: https://${{ secrets.AZURE_APP_NAME }}.scm.azurewebsites.net/api/zipdeploy
+      - name: 🔐 Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 🚀 Deploy to Azure Web App via CLI
         run: |
-          echo "🚚 Uploading deploy.zip to $ZIPDEPLOY_URL"
-          curl -X POST "$ZIPDEPLOY_URL" \
-            -u ${{ secrets.AZURE_ZIPDEPLOY_USER }}:${{ secrets.AZURE_ZIPDEPLOY_PWD }} \
-            --data-binary @"deploy.zip"
-          echo "✅ Deployment complete!"
+          az webapp deploy \
+            --resource-group RESGrp_Linux \
+            --name my-python-app123 \
+            --src-path deploy.zip \
+            --type zip
