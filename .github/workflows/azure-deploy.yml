@@ -23,12 +23,12 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: 🗜️ Create deployment package
-        run: |
-          mkdir deploy_folder
-          shopt -s extglob
-          cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
-          cd deploy_folder && zip -r ../deploy.zip . && cd ..
+          - name: 🗜️ Create deployment package
+          run: |
+            mkdir deploy_folder
+            rsync -av --exclude='venv/' --exclude='.git/' --exclude='.github/' --exclude='__pycache__/' . deploy_folder/
+            cd deploy_folder && zip -r ../deploy.zip . && cd ..
+        
 
       - name: 🆙 Determine next version
         id: version
