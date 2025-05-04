@@ -3,8 +3,7 @@ name: Deploy Flask to Azure using Azure CLI
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # 👈 Ajoute cette ligne pour activer le déclenchement manuel
-
+  workflow_dispatch:  # 👈 permet le déclenchement manuel
 
 jobs:
   build-and-deploy:
@@ -32,6 +31,12 @@ jobs:
           shopt -s extglob
           cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
           cd deploy_folder && zip -r ../deploy.zip . && cd ..
+
+      - name: 📤 Upload deploy.zip (early)
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-archive
+          path: deploy.zip
 
       - name: 🔍 Inspect deploy.zip content
         run: unzip -l deploy.zip
