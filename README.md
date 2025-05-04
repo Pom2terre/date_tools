@@ -2,11 +2,7 @@
 
 [![Déploiement Azure](https://github.com/pom2terre/date_tools/actions/workflows/azure-deploy.yml/badge.svg)](https://github.com/pom2terre/date_tools/actions/workflows/azure-deploy.yml)
 ![Version](https://img.shields.io/github/v/tag/pom2terre/date_tools?label=version&sort=semver)
-<<<<<<< HEAD
-![Licence](https://img.shields.io/github/license/pom2terre/date_tools?cacheSeconds=10)
-=======
 ![Licence](https://img.shields.io/github/license/pom2terre/date_tools)
->>>>>>> 9fa9e45 (� Ajout /version-debug + nettoyage _status_banner + version dynamique)
 ![Azure](https://img.shields.io/badge/Azure-Deployed-blue?logo=microsoft-azure)
 
 Calculateur de dates en Flask : durée entre deux dates, jour de la semaine, et plus.  
@@ -25,7 +21,7 @@ Déployé automatiquement sur Azure Web Apps via GitHub Actions.
 - Déploiement continu avec version dynamique (`APP_VERSION`)
 
 🔗 **Démo** : [https://my-python-app123.azurewebsites.net](https://my-python-app123.azurewebsites.net)  
-📦 [Voir les versions](https://github.com/pom2terre/date-calc-flask/releases)
+📦 [Voir les versions](https://github.com/pom2terre/date_tools/releases)
 
 ---
 
@@ -56,16 +52,17 @@ Chaque `git push` sur `main` :
 
 ## 📂 Structure du projet
 
-<pre>├── main.py # Entrée Flask
-├── wsgi.py # Serveur WSGI
+<pre>
+├── main.py                     # Entrée Flask
+├── wsgi.py                     # Serveur WSGI
 ├── templates/
-│ ├── _layout.html # Layout global
-│ ├── _footer.html # Footer dynamique
-│ ├── calculate_duration.html
-│ └── day_of_week.html
-├── static/ # Fichiers JS/CSS (si présents)
+│   ├── _layout.html            # Layout global
+│   ├── _footer.html            # Footer dynamique
+│   ├── calculate_duration.html
+│   └── day_of_week.html
+├── static/                     # Fichiers JS/CSS (si présents)
 ├── requirements.txt
-└── azure-deploy.yml # GitHub Actions
+└── azure-deploy.yml            # GitHub Actions
 </pre>
 
 ---
@@ -80,5 +77,3 @@ Développé par [@pom2terre](https://github.com/pom2terre)
 ## 📝 Licence
 
 Ce projet est distribué sous la licence [MIT](LICENSE).
-
-
