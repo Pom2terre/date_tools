@@ -29,6 +29,9 @@ jobs:
           cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
           cd deploy_folder && zip -r ../deploy.zip . && cd ..
 
+      - name: 🔍 Inspect deploy.zip content
+        run: unzip -l deploy.zip
+
       - name: 🆙 Determine next version
         id: version
         run: |
