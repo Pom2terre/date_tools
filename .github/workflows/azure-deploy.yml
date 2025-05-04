@@ -29,7 +29,6 @@ jobs:
             rsync -av --exclude='venv/' --exclude='.git/' --exclude='.github/' --exclude='__pycache__/' . deploy_folder/
             cd deploy_folder && zip -r ../deploy.zip . && cd ..
         
-
       - name: 🆙 Determine next version
         id: version
         run: |
