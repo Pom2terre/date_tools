@@ -93,6 +93,11 @@ jobs:
             --resource-group RESGrp_Linux \
             --settings APP_VERSION=${{ steps.version.outputs.NEW_VERSION }}
 
+      - name: 🧪 Test Gunicorn loading
+        run: |
+          gunicorn --version
+          gunicorn --check-config wsgi:app
+    
       - name: 🚀 Deploy to Azure Web App
         run: |
           az webapp deploy \
