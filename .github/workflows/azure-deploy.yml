@@ -54,14 +54,13 @@ jobs:
           git commit -m "🔄 MAJ version.py → ${{ steps.version.outputs.NEW_VERSION }}" || echo "Aucun changement"
           git push origin main
 
-      - name: 🏷️ Create tag (if none exists)
+      - name: 🏷️ Create or re-tag HEAD with NEW_VERSION
         run: |
-          if [ -z "$(git tag --points-at HEAD)" ]; then
-            git tag ${{ steps.version.outputs.NEW_VERSION }}
-            git push origin ${{ steps.version.outputs.NEW_VERSION }}
-          else
-            echo "Un tag existe déjà pour ce commit."
-          fi
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -f ${{ steps.version.outputs.NEW_VERSION }}
+          git push -f origin ${{ steps.version.outputs.NEW_VERSION }}
+
 
       - name: 🔐 Azure login
         uses: azure/login@v1
