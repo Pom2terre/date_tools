@@ -5,7 +5,8 @@ from version import APP_VERSION
 import os
 
 app = Flask(__name__)
-app.config["APP_VERSION"] = APP_VERSION
+app.config["APP_VERSION"] = os.environ.get("APP_VERSION", "N/A")
+
 # Set config based on environment
 env = os.getenv("FLASK_ENV", "production")
 app.config["ENVIRONMENT"] = env
@@ -29,17 +30,16 @@ def hello():
 
 @app.route("/version-debug")
 def version_debug():
-    import os
-    from version import APP_VERSION
-
     return f"""
     <pre>
-    🌐 Version Flask : {APP_VERSION}
-    🔧 ENV (app.config) : {app.config.get("ENVIRONMENT", "N/A")}
-    🐞 DEBUG : {app.debug}
-    🔄 APP_VERSION via os.environ : {os.getenv("APP_VERSION", "N/A")}
+    🌐 Version dans version.py              : {APP_VERSION}
+    🧩 Version dans app.config["APP_VERSION"] : {app.config.get("APP_VERSION", "❌ absente")}
+    🔄 Version via os.environ["APP_VERSION"]  : {os.getenv("APP_VERSION", "❌ absente")}
+    🔧 ENV (app.config["ENVIRONMENT"])       : {app.config.get("ENVIRONMENT", "N/A")}
+    🐞 DEBUG                                 : {app.debug}
     </pre>
     """
+
 
 if __name__ == "__main__":
     # Pour exécution en local uniquement
