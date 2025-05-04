@@ -12,7 +12,7 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Important pour récupérer les tags
+          fetch-depth: 0
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
@@ -20,21 +20,21 @@ jobs:
           python-version: '3.11'
 
       - name: 📦 Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
-          - name: 🗜️ Create deployment package
-          run: |
-            mkdir deploy_folder
-            rsync -av --exclude='venv/' --exclude='.git/' --exclude='.github/' --exclude='__pycache__/' . deploy_folder/
-            cd deploy_folder && zip -r ../deploy.zip . && cd ..
-        
-        - name: 🆙 Determine next version
+      - name: 🗜️ Create deployment package
+        run: |
+          mkdir deploy_folder
+          shopt -s extglob
+          cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
+          cd deploy_folder && zip -r ../deploy.zip . && cd ..
+
+      - name: 🆙 Determine next version
         id: version
         run: |
-          LATEST=$(git tag --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
+          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
           echo "Dernier tag : $LATEST"
-          if [[ "$LATEST" =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+          if [[ "$LATEST" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             PATCH="${BASH_REMATCH[3]}"
@@ -45,26 +45,22 @@ jobs:
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "Version calculée : $NEW_VERSION"
 
-      - name: ✍️ Mettre à jour version.py
+      - name: ✍️ Update version.py
         run: |
           echo "APP_VERSION = \"${{ steps.version.outputs.NEW_VERSION }}\"" > version.py
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add version.py
-          git commit -m "🔄 Mise à jour version.py → ${{ steps.version.outputs.NEW_VERSION }}"
-          git fetch origin         # 👈 Ajout important
+          git commit -m "🔄 MAJ version.py → ${{ steps.version.outputs.NEW_VERSION }}" || echo "Aucun changement"
           git push origin main
-        
 
-      - name: 🏷️ Create new tag (if none in commit)
+      - name: 🏷️ Create tag (if none exists)
         run: |
           if [ -z "$(git tag --points-at HEAD)" ]; then
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
             git tag ${{ steps.version.outputs.NEW_VERSION }}
             git push origin ${{ steps.version.outputs.NEW_VERSION }}
           else
-            echo "Tag déjà existant pour ce commit."
+            echo "Un tag existe déjà pour ce commit."
           fi
 
       - name: 🔐 Azure login
@@ -72,7 +68,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: 🛠️ Update APP_VERSION on Azure
+      - name: 🕒 Pause avant déploiement pour stabiliser l'environnement
+        run: sleep 10
+
+      - name: 🔄 Set APP_VERSION in Azure
         run: |
           VERSION=$(git tag --points-at HEAD | tail -n1)
           az webapp config appsettings set \
@@ -80,10 +79,8 @@ jobs:
             --resource-group RESGrp_Linux \
             --settings APP_VERSION=$VERSION
 
-      - name: 🚀 Deploy to Azure
+      - name: 🚀 Deploy to Azure Web App
         run: |
-          echo "🕒 Pause avant déploiement pour stabiliser l'environnement"
-          sleep 10
           az webapp deploy \
             --name my-python-app123 \
             --resource-group RESGrp_Linux \
@@ -92,25 +89,27 @@ jobs:
 
       - name: ✅ Test endpoints
         run: |
-          sleep 15
           BASE="https://my-python-app123.azurewebsites.net"
+          sleep 15
           echo "### Résumé des tests" > test-summary.md
 
-          check() {
-            echo "🔹 $1" >> test-summary.md
-            curl -fsSL "$BASE$2" > /dev/null \
-              && echo "✅ $2 OK" >> test-summary.md \
-              || echo "❌ $2 ECHEC" >> test-summary.md
+          test_url() {
+            echo "🔹 Test de $1" >> test-summary.md
+            if curl -fsSL "$BASE$1" > /dev/null; then
+              echo "✅ $1 OK" >> test-summary.md
+            else
+              echo "❌ $1 ÉCHEC" >> test-summary.md
+            fi
           }
 
-          check "Accueil" "/"
-          check "Hello" "/hello"
-          check "Jour" "/day-of-week"
-          check "Durée" "/calculate-duration"
+          test_url "/"
+          test_url "/hello"
+          test_url "/day-of-week"
+          test_url "/calculate-duration"
 
           cat test-summary.md
 
-      - name: 📤 Upload résumé des tests
+      - name: 📤 Upload test summary
         uses: actions/upload-artifact@v4
         with:
           name: test-summary
