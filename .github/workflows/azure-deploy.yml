@@ -53,7 +53,9 @@ jobs:
           git config user.email "github-actions@github.com"
           git add version.py
           git commit -m "🔄 Mise à jour version.py → ${{ steps.version.outputs.NEW_VERSION }}"
-          git push --force-with-lease origin main
+          git fetch origin         # 👈 Ajout important
+          git push origin main
+        
 
       - name: 🏷️ Create new tag (if none in commit)
         run: |
