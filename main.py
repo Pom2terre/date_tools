@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from tools.day_of_week.routes import day_of_week_bp
 from tools.date_calc.routes import date_calc_bp
 from version import APP_VERSION
+import os
 
 app = Flask(__name__)
 app.config["APP_VERSION"] = APP_VERSION
@@ -41,4 +42,6 @@ def version_debug():
     """
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
