@@ -73,11 +73,11 @@ jobs:
 
       - name: 🔄 Set APP_VERSION in Azure
         run: |
-          VERSION=$(git tag --points-at HEAD | tail -n1)
           az webapp config appsettings set \
             --name my-python-app123 \
             --resource-group RESGrp_Linux \
-            --settings APP_VERSION=$VERSION
+            --settings APP_VERSION=${{ steps.version.outputs.NEW_VERSION }}
+      
 
       - name: 🚀 Deploy to Azure Web App
         run: |
