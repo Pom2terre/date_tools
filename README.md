@@ -4,6 +4,8 @@
 ![Version](https://img.shields.io/github/v/tag/pom2terre/date_tools?label=version&sort=semver)
 ![Licence](https://img.shields.io/github/license/pom2terre/date_tools)
 ![Azure](https://img.shields.io/badge/Azure-Deployed-blue?logo=microsoft-azure)
+📦 [Voir les versions](https://github.com/pom2terre/date_tools/releases)
+
 
 Calculateur de dates en Flask : durée entre deux dates, jour de la semaine, et plus.  
 Déployé automatiquement sur Azure Web Apps via GitHub Actions.
@@ -77,3 +79,5 @@ Développé par [@pom2terre](https://github.com/pom2terre)
 ## 📝 Licence
 
 Ce projet est distribué sous la licence [MIT](LICENSE).
+
+
