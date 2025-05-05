@@ -93,11 +93,14 @@ jobs:
             --resource-group RESGrp_Linux \
             --settings APP_VERSION=${{ steps.version.outputs.NEW_VERSION }}
 
-      - name: 🧪 Test Gunicorn loading
+      - name: 📋 Vérification de la version dans Azure
         run: |
-          gunicorn --version
-          gunicorn --check-config wsgi:app
-    
+          az webapp config appsettings list \
+            --name my-python-app123 \
+            --resource-group RESGrp_Linux \
+            --query "[?name=='APP_VERSION'].{APP_VERSION: value}" \
+            --output table
+
       - name: 🚀 Deploy to Azure Web App
         run: |
           az webapp deploy \

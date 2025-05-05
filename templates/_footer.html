@@ -4,6 +4,6 @@
 {% set debug = result.debug if result and result.debug is not none else config.DEBUG %}
 
 <footer class="text-center text-xs text-gray-500 mt-10">
-    <p>Version : {{ app_version }}</p>
+    <p>Version : {{ version }}</p>
     <p>Environnement : {{ env }} – Debug : {{ debug }}</p>
 </footer>
