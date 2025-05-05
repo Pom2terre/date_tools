@@ -1,3 +1,6 @@
+# Fichier GitHub Actions : azure-deploy.yml
+
+```yaml
 name: Deploy Flask to Azure using Azure CLI
 
 on:
@@ -59,6 +62,17 @@ jobs:
           fi
           echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "Version calculée : $NEW_VERSION"    
+
+      - name: ✍️ Update version.py
+        shell: bash
+        run: |
+          echo "APP_VERSION = \"${{ steps.version.outputs.NEW_VERSION }}\"" > version.py
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add version.py
+          git commit -m "🔄 MAJ version.py → ${{ steps.version.outputs.NEW_VERSION }}" || echo "Aucun changement"
+          git pull --rebase origin main || true
+          git push --force-with-lease origin main || echo "ℹ️ Push ignoré (déjà à jour)"
 
       - name: 🏷️ Create or re-tag HEAD with NEW_VERSION
         shell: bash
@@ -127,3 +141,5 @@ jobs:
         with:
           name: test-summary
           path: test-summary.md
+
+```
