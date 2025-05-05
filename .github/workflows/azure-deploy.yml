@@ -3,7 +3,7 @@ name: Deploy Flask to Azure using Azure CLI
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # 👈 permet le déclenchement manuel
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -13,7 +13,7 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # nécessaire pour les tags et l'historique complet
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
@@ -26,7 +26,6 @@ jobs:
       - name: 🗜️ Create deployment package
         shell: bash
         run: |
-          set -e
           mkdir deploy_folder
           shopt -s extglob
           cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
@@ -45,8 +44,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          set -e
-          git fetch --tags  # ✅ Ajout essentiel
+          git fetch --tags --force
           LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | tail -n1 || echo "v0.0.0")
           echo "Dernier tag : $LATEST"
           if [[ "$LATEST" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
@@ -58,7 +56,7 @@ jobs:
             NEW_VERSION="v0.0.1"
           fi
           echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "Version calculée : $NEW_VERSION"    
+          echo "Version calculée : $NEW_VERSION"
 
       - name: ✍️ Update version.py
         shell: bash
@@ -69,13 +67,11 @@ jobs:
           git add version.py
           git commit -m "🔄 MAJ version.py → ${{ steps.version.outputs.NEW_VERSION }}" || echo "Aucun changement"
           git pull --rebase origin main || true
-          git push --force-with-lease origin main || echo "ℹ️ Push ignoré (déjà à jour)"
+          git push --force-with-lease origin main || echo "ℹ️ Aucun push nécessaire"
 
-      - name: 🏷️ Create or re-tag HEAD with NEW_VERSION
+      - name: 🏷️ Tag HEAD avec NEW_VERSION
         shell: bash
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
           git tag -f ${{ steps.version.outputs.NEW_VERSION }}
           git push -f origin ${{ steps.version.outputs.NEW_VERSION }}
 
@@ -84,10 +80,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: 🕒 Pause avant déploiement pour stabiliser l'environnement
-        run: sleep 10
-
-      - name: 🔄 Set APP_VERSION in Azure
+      - name: 🔄 Mettre à jour APP_VERSION sur Azure
         run: |
           az webapp config appsettings set \
             --name my-python-app123 \
@@ -102,7 +95,7 @@ jobs:
             --query "[?name=='APP_VERSION'].{APP_VERSION: value}" \
             --output table
 
-      - name: 🚀 Deploy to Azure Web App
+      - name: 🚀 Déploiement sur Azure Web App
         run: |
           az webapp deploy \
             --name my-python-app123 \
