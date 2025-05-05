@@ -44,10 +44,21 @@ jobs:
         id: version
         shell: bash
         run: |
+          set -e
+      
+          # 🧩 1. Si version.py existe, on utilise sa valeur
+          if [[ -f version.py ]]; then
+            VERSION=$(grep -oP 'APP_VERSION\s*=\s*"\K[^"]+' version.py)
+            echo "Version extraite depuis version.py : $VERSION"
+            echo "NEW_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+      
+          # 🧠 2. Sinon, on récupère automatiquement la version via Git tags
           git fetch --tags --force
-          # LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | tail -n1 || echo "v0.0.0")
-          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
+          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | tail -n1 || echo "v0.0.0")
           echo "Dernier tag : $LATEST"
+      
           if [[ "$LATEST" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
@@ -56,8 +67,10 @@ jobs:
           else
             NEW_VERSION="v0.0.1"
           fi
+      
+          echo "Version calculée automatiquement : $NEW_VERSION"
           echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "Version calculée : $NEW_VERSION"
+      
 
       - name: ✍️ Update version.py
         shell: bash
