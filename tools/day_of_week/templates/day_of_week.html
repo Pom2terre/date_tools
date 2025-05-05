@@ -30,7 +30,7 @@
             <ul class="list-disc list-inside mt-4 text-gray-700 space-y-2">
                 <li>Jour numéro <strong>{{ result.day_of_year }}</strong> de l'année, <strong>{{ result.days_left }}</strong> jours restants.</li>
                 <li>Le jour {{ result.day_of_year }} se trouve dans la semaine <strong>{{ result.weekday_index_year }}</strong> sur <strong>{{ result.weekday_total_year }}</strong> en {{ result.original_date[-4:] }}.</li>
-                <li>Le {{ result.original_date }} est le numéro <strong>{{ result.weekday_index_month }}</strong> sur <strong>{{ result.weekday_total_month }}</strong> en {{ result.original_date[3:20] }}.</li>
+                <li>Le {{ result.original_date }} est le {{ result.weekday }} <strong>{{ result.weekday_index_month }}</strong> sur <strong>{{ result.weekday_total_month }}</strong> en {{ result.original_date[3:20] }}.</li>
                 <li>L'année a <strong>{{ result.year_days }}</strong> jours.</li>
                 <li>Le mois a <strong>{{ result.month_days }}</strong> jours.</li>
             </ul>

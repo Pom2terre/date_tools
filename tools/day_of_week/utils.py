@@ -6,7 +6,6 @@ import locale
 try:
     locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
 except locale.Error:
-    # Fallback if the locale isn't available
     locale.setlocale(locale.LC_TIME, "")
 
 def analyze_date(date_str):
@@ -14,6 +13,7 @@ def analyze_date(date_str):
         input_date = datetime.strptime(date_str, "%d/%m/%y").date()
         year = input_date.year
         month = input_date.month
+        weekday_num = input_date.weekday()  # 0 = Monday, 6 = Sunday
         weekday = input_date.strftime("%A")
         month_name = input_date.strftime("%B")
         day_of_year = input_date.timetuple().tm_yday
@@ -22,10 +22,9 @@ def analyze_date(date_str):
         total_days_month = calendar.monthrange(year, month)[1]
 
         all_weekdays_year = [
-            date(year, m, d)
-            for m in range(1, 13)
-            for d in range(1, calendar.monthrange(year, m)[1] + 1)
-            if date(year, m, d).strftime("%A") == weekday
+            d for m in range(1, 13)
+            for d in (date(year, m, day) for day in range(1, calendar.monthrange(year, m)[1] + 1))
+            if d.weekday() == weekday_num
         ]
         all_weekdays_month = [d for d in all_weekdays_year if d.month == month]
 
