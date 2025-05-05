@@ -3,7 +3,7 @@ name: Deploy Flask to Azure using Azure CLI
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # 👈 permet le déclenchement manuel
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -13,7 +13,7 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Nécessaire pour récupérer les tags
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
@@ -31,12 +31,6 @@ jobs:
           shopt -s extglob
           cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
           cd deploy_folder && zip -r ../deploy.zip . && cd ..
-
-      - name: 📤 Upload deploy.zip (early)
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-archive
-          path: deploy.zip
 
       - name: 🔍 Inspect deploy.zip content
         run: unzip -l deploy.zip
@@ -59,10 +53,8 @@ jobs:
           fi
           echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "Version calculée : $NEW_VERSION"
-      
-        
 
-      - name: 🏷️ Create or re-tag HEAD with NEW_VERSION
+      - name: 🏷️ Tag HEAD with NEW_VERSION
         shell: bash
         run: |
           git config user.name "github-actions"
@@ -84,14 +76,6 @@ jobs:
             --name my-python-app123 \
             --resource-group RESGrp_Linux \
             --settings APP_VERSION=${{ steps.version.outputs.NEW_VERSION }}
-
-      - name: 📋 Vérification de la version dans Azure
-        run: |
-          az webapp config appsettings list \
-            --name my-python-app123 \
-            --resource-group RESGrp_Linux \
-            --query "[?name=='APP_VERSION'].{APP_VERSION: value}" \
-            --output table
 
       - name: 🚀 Deploy to Azure Web App
         run: |
