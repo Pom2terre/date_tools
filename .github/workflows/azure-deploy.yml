@@ -18,8 +18,8 @@ jobs:
       - name: 🔄 Fetch full history and tags
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git fetch --prune --unshallow
-          git fetch --tags --force
+          git fetch --prune --tags
+        
         
 
       - name: 🐍 Set up Python
