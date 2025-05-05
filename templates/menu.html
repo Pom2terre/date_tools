@@ -14,8 +14,13 @@
         </a>
         <a href="{{ url_for('date_calc.calculate_duration') }}"
            class="block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg shadow transition">
-            📅 Calculer la durée entre deux dates
+            📅 Calculer la durée en jours entre deux dates
         </a>
+        <a href="{{ url_for('date_time_calc_bp.duration_between_datetimes') }}"
+            class="block bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg shadow transition">
+            ⏱️ Durée entre 2 heures et dates
+        </a>
+
     </div>
 </div>
 {% endblock %}
