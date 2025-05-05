@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request
 from tools.day_of_week.routes import day_of_week_bp
 from tools.date_calc.routes import date_calc_bp
-from version import APP_VERSION
 import os
 
 app = Flask(__name__)
 app.config["APP_VERSION"] = os.environ.get("APP_VERSION", "N/A")
+app.config["ENVIRONMENT"] = os.environ.get("FLASK_ENV", "production")
+app.debug = app.config["ENVIRONMENT"] == "development"
 
 # Set config based on environment
 env = os.getenv("FLASK_ENV", "production")
@@ -32,13 +33,21 @@ def hello():
 def version_debug():
     return f"""
     <pre>
-    🌐 Version dans version.py              : {APP_VERSION}
     🧩 Version dans app.config["APP_VERSION"] : {app.config.get("APP_VERSION", "❌ absente")}
     🔄 Version via os.environ["APP_VERSION"]  : {os.getenv("APP_VERSION", "❌ absente")}
     🔧 ENV (app.config["ENVIRONMENT"])       : {app.config.get("ENVIRONMENT", "N/A")}
     🐞 DEBUG                                 : {app.debug}
     </pre>
     """
+
+
+@app.context_processor
+def inject_globals():
+    return {
+        "app_version": app.config.get("APP_VERSION", "N/A"),
+        "environment": app.config.get("ENVIRONMENT", "N/A"),
+        "debug": app.debug
+    }
 
 
 if __name__ == "__main__":
