@@ -14,8 +14,13 @@
       </a>
       <a href="{{ url_for('date_calc.calculate_duration') }}"
          class="{% if request.endpoint == 'date_calc.calculate_duration' %}underline{% endif %} hover:underline">
-         📆 Durée
+         🕓 Durée / jour
+      </a>
+      <a href="{{ url_for('date_time_calc_bp.duration_between_datetimes') }}"
+         class="{% if request.endpoint == 'date_time_calc_bp.duration_between_datetimes' %}underline{% endif %} hover:underline">
+         ⏱️ Durée / jour & heure
       </a>
     </div>
   </div>
 </nav>
+

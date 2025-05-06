@@ -27,7 +27,7 @@
             <button type="submit" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded shadow transition">
                 Calculer la durée
             </button>
-        </div>
+        </div>        
     </form>
 
     {% if result %}
@@ -47,6 +47,12 @@
                     <li>Pour l’année <strong>{{ result.current_year }}</strong>, cela représente environ <strong>{{ result.time_duration_percentage }}%</strong></li>
                 </ul>
                 
+            </div>
+            <div class="mt-6">
+                <a href="{{ url_for('menu') }}"
+                   class="inline-block text-sm text-indigo-600 hover:underline">
+                    ⬅ Retour au menu
+                </a>
             </div>
         {% endif %}
     {% endif %}

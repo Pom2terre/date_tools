@@ -16,7 +16,7 @@
             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded shadow transition">
                 Calculer
             </button>
-        </div>
+        </div>   
     </form>
 
     {% if result %}
@@ -35,12 +35,13 @@
                 <li>Le mois a <strong>{{ result.month_days }}</strong> jours.</li>
             </ul>
 
-            <div class="mt-6 text-center">
-                <a href="{{ url_for('day_of_week.day_of_week') }}" class="inline-block bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded">
-                    ← Recommencer
-                </a>
-            </div>
         {% endif %}
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('menu') }}"
+               class="inline-block text-sm text-indigo-600 hover:underline">
+                ⬅ Retour au menu
+            </a>
+        </div>
     {% endif %}
 </div>
 {% endblock %}
