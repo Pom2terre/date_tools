@@ -94,7 +94,7 @@ jobs:
       - name: ✅ Test endpoints
         shell: bash
         run: |
-          BASE="https://my-python-app123.azurewebsites.net"
+          BASE="https://date-calc.azurewebsites.net"
           sleep 15
           echo "### Résumé des tests" > test-summary.md
 

@@ -1,12 +1,9 @@
-# Fichier GitHub Actions : azure-deploy.yml
-
-```yaml
 name: Deploy Flask to Azure using Azure CLI
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # 👈 permet le déclenchement manuel
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -16,12 +13,17 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Nécessaire pour récupérer les tags
+      
+      - name: 🔄 Fetch full history and tags
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --prune --tags
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'  # ← version mise à jour ici
 
       - name: 📦 Install dependencies
         run: pip install -r requirements.txt
@@ -35,12 +37,6 @@ jobs:
           cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
           cd deploy_folder && zip -r ../deploy.zip . && cd ..
 
-      - name: 📤 Upload deploy.zip (early)
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-archive
-          path: deploy.zip
-
       - name: 🔍 Inspect deploy.zip content
         run: unzip -l deploy.zip
 
@@ -49,8 +45,8 @@ jobs:
         shell: bash
         run: |
           set -e
-          git fetch --tags  # ✅ Ajout essentiel
-          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | tail -n1 || echo "v0.0.0")
+          git tag --sort=-v:refname
+          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
           echo "Dernier tag : $LATEST"
           if [[ "$LATEST" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
@@ -61,20 +57,9 @@ jobs:
             NEW_VERSION="v0.0.1"
           fi
           echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "Version calculée : $NEW_VERSION"    
+          echo "Version calculée : $NEW_VERSION"
 
-      - name: ✍️ Update version.py
-        shell: bash
-        run: |
-          echo "APP_VERSION = \"${{ steps.version.outputs.NEW_VERSION }}\"" > version.py
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add version.py
-          git commit -m "🔄 MAJ version.py → ${{ steps.version.outputs.NEW_VERSION }}" || echo "Aucun changement"
-          git pull --rebase origin main || true
-          git push --force-with-lease origin main || echo "ℹ️ Push ignoré (déjà à jour)"
-
-      - name: 🏷️ Create or re-tag HEAD with NEW_VERSION
+      - name: 🏷️ Tag HEAD with NEW_VERSION
         shell: bash
         run: |
           git config user.name "github-actions"
@@ -93,22 +78,14 @@ jobs:
       - name: 🔄 Set APP_VERSION in Azure
         run: |
           az webapp config appsettings set \
-            --name my-python-app123 \
+            --name date-calc \
             --resource-group RESGrp_Linux \
             --settings APP_VERSION=${{ steps.version.outputs.NEW_VERSION }}
-
-      - name: 📋 Vérification de la version dans Azure
-        run: |
-          az webapp config appsettings list \
-            --name my-python-app123 \
-            --resource-group RESGrp_Linux \
-            --query "[?name=='APP_VERSION'].{APP_VERSION: value}" \
-            --output table
 
       - name: 🚀 Deploy to Azure Web App
         run: |
           az webapp deploy \
-            --name my-python-app123 \
+            --name date-calc \
             --resource-group RESGrp_Linux \
             --src-path deploy.zip \
             --type zip
@@ -116,7 +93,7 @@ jobs:
       - name: ✅ Test endpoints
         shell: bash
         run: |
-          BASE="https://my-python-app123.azurewebsites.net"
+          BASE="https://date-calc.azurewebsites.net"
           sleep 15
           echo "### Résumé des tests" > test-summary.md
 
@@ -141,5 +118,3 @@ jobs:
         with:
           name: test-summary
           path: test-summary.md
-
-```
