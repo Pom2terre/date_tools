@@ -102,9 +102,10 @@ jobs:
             --src-path deploy.zip \
             --type zip
 
-      - name: 🧪 Ensure curl is installed
+      - name: ✅ Vérification curl + test des endpoints
         shell: bash
         run: |
+          set -e
           if ! command -v curl &> /dev/null; then
             echo "❗ curl n'est pas installé. Installation..."
             sudo apt-get update && sudo apt-get install -y curl
@@ -112,10 +113,6 @@ jobs:
             echo "✅ curl est déjà installé."
           fi
 
-      - name: ✅ Test endpoints
-        shell: bash
-        run: |
-          set -e
           BASE="https://date-calc.azurewebsites.net"
           sleep 15
           echo "### Résumé des tests" > test-summary.md
@@ -140,7 +137,12 @@ jobs:
 
           cat test-summary.md
 
+          test_url "/"
+          test_url "/hello"
+          test_url "/day-of-week"
+          test_url "/calculate-duration"
 
+          cat test-summary.md
 
       - name: 🧹 Cleanup temporary files
         shell: bash
