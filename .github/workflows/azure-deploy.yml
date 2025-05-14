@@ -94,7 +94,7 @@ jobs:
             --resource-group RESGrp_Linux \
             --settings APP_VERSION=${{ steps.version.outputs.NEW_VERSION }}
 
-      - name: 🚀 Deploy to Azure Web App
+      - name: 🚀 Deploy to Azure and start app
         run: |
           az webapp deploy \
             --name my-python-app123 \
@@ -102,16 +102,10 @@ jobs:
             --src-path deploy.zip \
             --type zip
 
-      - name: ✅ Vérification curl + test des endpoints
+      - name: ✅ Tester les endpoints (curl ou wget)
         shell: bash
         run: |
           set -e
-          if ! command -v curl &> /dev/null; then
-            echo "❗ curl n'est pas installé. Installation..."
-            sudo apt-get update && sudo apt-get install -y curl
-          else
-            echo "✅ curl est déjà installé."
-          fi
 
           BASE="https://date-calc.azurewebsites.net"
           sleep 15
@@ -120,8 +114,17 @@ jobs:
           test_url() {
             PATH=$1
             EXPECTED=${2:-200}
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE$PATH")
-            echo "🔹 Test de $PATH → Code HTTP: $STATUS" >> test-summary.md
+            echo "🔹 Test de $PATH" >> test-summary.md
+
+            if command -v curl &> /dev/null; then
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE$PATH")
+            elif command -v wget &> /dev/null; then
+              STATUS=$(wget --server-response --spider "$BASE$PATH" 2>&1 | awk '/HTTP\// {print $2}' | head -n1)
+            else
+              echo "❌ Ni curl ni wget ne sont disponibles." >> test-summary.md
+              exit 1
+            fi
+
             if [ "$STATUS" -eq "$EXPECTED" ]; then
               echo "✅ $PATH OK ($STATUS)" >> test-summary.md
             else
@@ -129,13 +132,6 @@ jobs:
               exit 1
             fi
           }
-
-          test_url "/"
-          test_url "/hello"
-          test_url "/day-of-week"
-          test_url "/calculate-duration"
-
-          cat test-summary.md
 
           test_url "/"
           test_url "/hello"
