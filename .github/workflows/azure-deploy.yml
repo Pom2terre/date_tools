@@ -23,7 +23,7 @@ jobs:
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: 📦 Install dependencies
         run: pip install -r requirements.txt
@@ -34,8 +34,16 @@ jobs:
           set -e
           mkdir deploy_folder
           shopt -s extglob
-          cp -r !(deploy_folder|.git|.github|venv|__pycache__|deploy.zip) deploy_folder/
+
+          # Liste des fichiers/folders à inclure explicitement
+          INCLUDED_FILES=$(ls -A | grep -Ev '^(venv|.env|.git|.gitignore|__pycache__|deploy.zip|.github)$')
+
+          for item in $INCLUDED_FILES; do
+            cp -r "$item" deploy_folder/
+          done
+
           cd deploy_folder && zip -r ../deploy.zip . && cd ..
+
 
       - name: 🔍 Inspect deploy.zip content
         run: unzip -l deploy.zip
@@ -94,16 +102,21 @@ jobs:
       - name: ✅ Test endpoints
         shell: bash
         run: |
+          set -e
           BASE="https://date-calc.azurewebsites.net"
           sleep 15
           echo "### Résumé des tests" > test-summary.md
 
           test_url() {
-            echo "🔹 Test de $1" >> test-summary.md
-            if curl -fsSL "$BASE$1" > /dev/null; then
-              echo "✅ $1 OK" >> test-summary.md
+            PATH=$1
+            EXPECTED=${2:-200}
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE$PATH")
+            echo "🔹 Test de $PATH → Code HTTP: $STATUS" >> test-summary.md
+            if [ "$STATUS" -eq "$EXPECTED" ]; then
+              echo "✅ $PATH OK ($STATUS)" >> test-summary.md
             else
-              echo "❌ $1 ÉCHEC" >> test-summary.md
+              echo "❌ $PATH ÉCHEC ($STATUS au lieu de $EXPECTED)" >> test-summary.md
+              exit 1
             fi
           }
 
@@ -114,8 +127,12 @@ jobs:
 
           cat test-summary.md
 
-      - name: 📤 Upload test summary
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-summary
-          path: test-summary.md
+
+      - name: 🧹 Cleanup temporary files
+        shell: bash
+        run: |
+          echo "🧹 Suppression de deploy.zip et du dossier temporaire"
+          rm -f deploy.zip
+          rm -rf deploy_folder
+          echo "✅ Nettoyage terminé"
+
