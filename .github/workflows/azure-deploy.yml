@@ -119,7 +119,7 @@ jobs:
             if command -v curl &> /dev/null; then
               STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE$PATH")
             elif command -v wget &> /dev/null; then
-              STATUS=$(wget --server-response --spider "$BASE$PATH" 2>&1 | awk '/HTTP\// {print $2}' | head -n1)
+              wget --server-response --spider "$BASE$PATH"
             else
               echo "❌ Ni curl ni wget ne sont disponibles." >> test-summary.md
               exit 1
