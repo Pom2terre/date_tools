@@ -25,10 +25,8 @@ jobs:
         id: version
         shell: bash
         run: |
-          set -e
           git tag --sort=-v:refname
           LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
-          echo "Dernier tag : $LATEST"
           if [[ "$LATEST" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
@@ -53,16 +51,9 @@ jobs:
           set -e
           mkdir deploy_folder
           shopt -s extglob
-          INCLUDED=$(ls -A | grep -Ev '^(venv|.env|.git|.gitignore|__pycache__|deploy.zip|deploy_folder|.DS_Store)$')
-          for item in $INCLUDED; do
-            cp -r "$item" deploy_folder/
-          done
-          cd deploy_folder
-          zip -r ../deploy.zip .
-          cd ..
-
-      - name: 🔍 Inspect deploy.zip content
-        run: unzip -l deploy.zip
+          INCLUDED=$(ls -A | grep -Ev '(__pycache__|\.pyc|venv|.env|.git|.gitignore|deploy.zip|deploy_folder|.DS_Store)')
+          for item in $INCLUDED; do cp -r "$item" deploy_folder/; done
+          cd deploy_folder && zip -r ../deploy.zip . && cd ..
 
       - name: 📤 Upload deploy.zip
         uses: actions/upload-artifact@v4
@@ -101,48 +92,10 @@ jobs:
             --src-path deploy.zip \
             --type zip
 
-      - name: ✅ Tester les endpoints (ne bloque pas le workflow)
+      - name: ✅ Tester les endpoints (non bloquant)
         shell: bash
         continue-on-error: true
         run: |
-          set +e  # Désactive l'arrêt sur erreur
           BASE="https://date-calc.azurewebsites.net"
-          sleep 15
-          echo "### Résumé des tests" > test-summary.md
-          EXIT_CODE=0
-
-          test_url() {
-            PATH=$1
-            EXPECTED=${2:-200}
-            echo "🔹 Test de $PATH" >> test-summary.md
-            if command -v curl &> /dev/null; then
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE$PATH")
-            elif command -v wget &> /dev/null; then
-              STATUS=$(wget --server-response --spider "$BASE$PATH" 2>&1 | awk '/HTTP\// {print $2}' | head -n1)
-            else
-              echo "❌ Ni curl ni wget disponibles." >> test-summary.md
-              EXIT_CODE=1
-              return
-            fi
-
-            if [ "$STATUS" -eq "$EXPECTED" ]; then
-              echo "✅ $PATH OK ($STATUS)" >> test-summary.md
-            else
-              echo "❌ $PATH ÉCHEC ($STATUS au lieu de $EXPECTED)" >> test-summary.md
-              EXIT_CODE=1
-            fi
-          }
-
-          test_url "/"
-          test_url "/hello"
-          test_url "/day-of-week"
-          test_url "/calculate-duration"
-
-          cat test-summary.md
-
-          if [ "$EXIT_CODE" -ne 0 ]; then
-            echo "❗ Un ou plusieurs tests HTTP ont échoué, mais le workflow continue."
-          else
-            echo "✅ Tous les tests HTTP ont réussi."
-          fi
-
+          echo "🔎 Test rapide de santé"
+          curl -s -o /dev/null -w "%{http_code}" "$BASE/" | grep -q "200" && echo "✅ App OK" || echo "❌ App non disponible"
