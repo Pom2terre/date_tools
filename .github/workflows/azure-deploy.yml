@@ -102,6 +102,16 @@ jobs:
             --src-path deploy.zip \
             --type zip
 
+      - name: 🧪 Ensure curl is installed
+        shell: bash
+        run: |
+          if ! command -v curl &> /dev/null; then
+            echo "❗ curl n'est pas installé. Installation..."
+            sudo apt-get update && sudo apt-get install -y curl
+          else
+            echo "✅ curl est déjà installé."
+          fi
+
       - name: ✅ Test endpoints
         shell: bash
         run: |
@@ -129,6 +139,7 @@ jobs:
           test_url "/calculate-duration"
 
           cat test-summary.md
+
 
 
       - name: 🧹 Cleanup temporary files
