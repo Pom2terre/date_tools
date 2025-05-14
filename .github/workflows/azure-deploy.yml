@@ -35,14 +35,17 @@ jobs:
           mkdir deploy_folder
           shopt -s extglob
 
-          # Liste des fichiers/folders à inclure explicitement
-          INCLUDED_FILES=$(ls -A | grep -Ev '^(venv|.env|.git|.gitignore|__pycache__|deploy.zip|.github)$')
+          # Fichiers à inclure (on filtre ceux à exclure)
+          INCLUDED=$(ls -A | grep -Ev '^(venv|.env|.git|.gitignore|__pycache__|deploy.zip|deploy_folder|.DS_Store)$')
 
-          for item in $INCLUDED_FILES; do
+          for item in $INCLUDED; do
             cp -r "$item" deploy_folder/
           done
 
-          cd deploy_folder && zip -r ../deploy.zip . && cd ..
+          cd deploy_folder
+          zip -r ../deploy.zip .
+          cd ..
+
 
 
       - name: 🔍 Inspect deploy.zip content
